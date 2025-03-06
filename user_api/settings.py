@@ -15,35 +15,29 @@ from datetime import timedelta
 import os
 from dotenv import load_dotenv
 
-
 # Load environment variables from .env file
 load_dotenv()
 
 # Fetch values from environment variables
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = os.getenv('DB_HOST', 'localhost')  # Default to localhost if not set
-DB_PORT = os.getenv('DB_PORT', '5432')  # Default to 5432 if not set
+DB_NAME = os.getenv('DB_NAME', 'users')
+DB_HOST = os.getenv('DB_HOST', 'mongodb://localhost:27017/')
+DB_PORT = int(os.getenv('DB_PORT', 27017))
+DB_USER = os.getenv('DB_USER', None)
+DB_PASSWORD = os.getenv('DB_PASSWORD', None)
+# AUTH_SOURCE = os.getenv('AUTH_SOURCE', 'admin')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#8%44av9azn4f6bkm@4@9i7=e3fiedqp1ll@!7oj%3ot#q)4^$'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["*"]  # Allow all hosts, change this in production
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,19 +47,23 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'user',
+    'invoice'
 ]
 
+# Django Rest Framework Authentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
 
+# JWT Authentication settings
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -78,6 +76,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'user_api.urls'
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -96,56 +95,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'user_api.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'djongo',
-#         'NAME': 'users',  # Replace with your database name
-#         'CLIENT': {
-#             'host': 'mongodb://localhost:27017/',  # Replace with your MongoDB URL
-#             # 'username': 'Raja1162',  # Optional, if authentication is required
-#             # 'password': 'Raja9609@',  # Optional, if authentication is required
-#             'authSource': 'admin',  # Change if using a different auth database
-#         }
-#     }
-# }
-
+# Database Configuration for MongoDB using djongo
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # Use PostgreSQL engine
-        'NAME': DB_NAME,               # Replace with your database name
-        'USER': DB_USER,                   # Replace with your PostgreSQL username
-        'PASSWORD': DB_PASSWORD,                # Replace with your PostgreSQL password
-        'HOST': DB_HOST,                        # Use 'localhost' if on the same machine
-        'PORT': DB_PORT,                             # Default PostgreSQL port
+        'ENGINE': 'djongo',
+        'NAME': 'users',  # Your database name
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb://localhost:27017/',  # Your MongoDB server address
+            'username': '',  # Leave empty if authentication is disabled
+            'password': '',  # Leave empty if authentication is disabled
+            'serverSelectionTimeoutMS': 5000,
+            # 'authSource': 'admin',  # Change to 'users' if your credentials belong to the 'users' database
+            # 'authMechanism': 'SCRAM-SHA-256',  # Change to 'SCRAM-SHA-1' if using an older MongoDB version
+        }
     }
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.dummy'  # Use dummy engine, as Django ORM won't be used
-#     }
-# }
 
-# # Connect to MongoDB
-# connect(
-#     db="users",
-#     host="mongodb://localhost:27017/users"
-# )
-
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
-AAUTHENTICATION_BACKENDS = [
-    'user.authentication.EmailBackend',  # Change 'yourapp' to your actual app name
-    'django.contrib.auth.backends.ModelBackend',
+# Custom Authentication Backend (for email-based login)
+AUTHENTICATION_BACKENDS = [
+    'user.authentication.EmailBackend',  # Custom Email Authentication
+    'django.contrib.auth.backends.ModelBackend',  # Default Django authentication
 ]
 
-
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -161,25 +134,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = 'static/'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
